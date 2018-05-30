@@ -255,6 +255,8 @@ def make_parser():
         '--show_image', '-s', default=False, action='store_true')
     parser.add_argument(
         '-i', '--image', default='~/Downloads/data/left/000019.png', type=str, help='Image for detection')
+    parser.add_argument('--start_epoch', '-se', default=1, type=int)
+    parser.add_argument('--end_epoch', '-ee', default=-1, type=int)
     return parser
 
 

@@ -80,26 +80,3 @@ for labels in image_labels :
         for label in labels[1:]:
             label_file.write(str(label[0]) + " " + str(label[1]/width) + " " + str(label[2]/height) + " " + str((label[3] - label[1])/width) + " " + str((label[4] - label[2])/height) + "\n")
     j = j + 1
-'''
-j = 0
-for i in image_labels :
-    print("Image label #" + str(j) + ", label: " + str(i))
-    j = j + 1
-
-# load images
-images = []
-history = np.array(PIL.Image.open(os.path.join(image_labels[0][0][0], image_labels[0][0][1])), dtype=np.uint8).shape
-for i, label in enumerate(image_labels):
-    img = np.array(PIL.Image.open(os.path.join(label[0][0], label[0][1])), dtype=np.uint8)
-    print(img.shape)
-    assert(img.shape == history)
-    images.append(img)
-    if debug and i == 9:
-        break
-
-#convert to numpy for saving
-print(len(images))
-images = np.array(images, dtype=np.uint8)
-image_labels = [np.array(i[1:]) for i in image_labels]# remove the file names
-image_labels = np.array(image_labels)
-'''
