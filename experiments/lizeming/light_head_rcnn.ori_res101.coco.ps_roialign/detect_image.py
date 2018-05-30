@@ -186,6 +186,33 @@ def eval_all(args):
     eval_file.close()
     print("\n")
 
+def detect(args):
+    devs = args.devices.split(',')
+    image_path = args.image
+    misc.ensure_dir(config.eval_dir)
+    dataset_dict = dataset.image_data()
+    prepare_func = dataset_dict['prepare_func']
+    for epoch_num in range(args.start_epoch, args.end_epoch + 1):
+        model_file = osp.join(
+            config.output_dir, 'model_dump',
+            'epoch_{:d}'.format(epoch_num) + '.ckpt')
+        func, inputs = load_model(model_file, devs[0])
+        data_dict = prepare_func(image_path)
+        result_dict = inference(func, inputs, data_dict)
+        all_results.append(result_dict)
+
+        if args.show_image:
+            image = result_dict['data']
+            for db in result_dict['result_boxes']:
+                if db.score > config.test_vis_threshold:
+                    db.draw(image)
+            if 'boxes' in result_dict.keys():
+                for db in result_dict['boxes']:
+                    db.draw(image)
+            cv2.imwrite('predicted.png', image)
+
+    print("\n")
+
 
 def save_result(all_results, save_path, model_name):
     prefix = ''
@@ -221,13 +248,13 @@ def save_result(all_results, save_path, model_name):
 
 
 def make_parser():
-    parser = argparse.ArgumentParser('test network')
+    parser = argparse.ArgumentParser('Detect Image')
     parser.add_argument(
         '-d', '--devices', default='0', type=str, help='device for testing')
     parser.add_argument(
         '--show_image', '-s', default=False, action='store_true')
-    parser.add_argument('--start_epoch', '-se', default=1, type=int)
-    parser.add_argument('--end_epoch', '-ee', default=-1, type=int)
+    parser.add_argument(
+        '-i', '--image', default='~/Downloads/data/left/000019.png', type=str, help='Image for detection')
     return parser
 
 
@@ -237,5 +264,5 @@ if __name__ == '__main__':
     args.devices = misc.parse_devices(args.devices)
     if args.end_epoch == -1:
         args.end_epoch = args.start_epoch
-
-    eval_all(args)
+    detect(args)
+    #eval_all(args)
