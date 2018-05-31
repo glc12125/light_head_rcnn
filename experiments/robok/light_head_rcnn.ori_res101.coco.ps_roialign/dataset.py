@@ -216,6 +216,17 @@ def train_dataset(seed=config.seed_dataprovider):
         yield single_gpu_data
 
 
+def image_data():
+    root = config.eval_root_folder
+
+    def prepare_func(relative_image_path):
+        image_path = root + relative_image_path
+        # ground truth
+        img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        return dict(data=img, image_path=image_path)
+
+    return dict(prepare_func=prepare_func)
+
 def val_dataset():
     root = config.eval_root_folder
     source = config.eval_source
