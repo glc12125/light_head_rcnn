@@ -9,7 +9,7 @@ import numpy as np
 from lxml import etree
 
 debug = False #only load 10 images
-shuffle = False # shuffle dataset
+shuffle = True # shuffle dataset
 
 def get_training_examples(dir):
   examples_list = []
@@ -25,9 +25,26 @@ def read_examples_list(path):
     print(*lines)
   return [line.strip().split(' ')[0] for line in lines]
 
+def get_id_class_mapping(dir):
+    mapping = {}
+    class_file = os.path.join(dir, "gtsdb_classes.txt")
+    print(class_file)
+    class_names = read_classes_list(class_file)
+    class_id = 0
+    for class_name in class_names:
+        mapping[class_id] = class_name
+        class_id = class_id + 1
+    return mapping
+
+def read_classes_list(path):
+  with open(path, 'r') as f:
+    lines = f.readlines()
+  return [line.strip().split('\n')[0] for line in lines]
+
 text = []
 image_labels = []
 root_dir = '/Users/liangchuangu/Development/machine_learning/darknet-traffic/gtsdb'
+od_dir = '/Users/liangchuangu/Development/machine_learning/light_head_rcnn/data/gtsdb'
 data_dir = '/Users/liangchuangu/Development/machine_learning/darknet-traffic/gtsdb/images'
 
 training_list = get_training_examples(root_dir)
@@ -37,10 +54,7 @@ for idx, example in enumerate(training_list):
     unique_set.add(os.path.join(data_dir, example.split(';')[0].split('.')[0] + '.jpg'))
 print("There are " + str(len(unique_set)) + " images containing labels\n")
 
-with open(root_dir + '/train.txt', 'w') as train_file:
-    for path in unique_set:
-        train_file.write(path + "\n")
-
+class_id_name_map = get_id_class_mapping(od_dir)
 
 name_to_index_map = {}
 index = -1
@@ -68,15 +82,55 @@ for idx, example in enumerate(training_list):
     if index % 100 == 0:
         print('On image %d of %d', index, len(training_list))
 
-# save labels for each image
-j = 0
-for labels in image_labels :
-    print("Image label #" + str(j) + ", labels: " + str(labels))
-    img = np.array(PIL.Image.open(os.path.join(labels[0][0], labels[0][1])), dtype=np.uint8)
-    print(img.shape)
-    width = img.shape[1]
-    height = img.shape[0]
-    with open(root_dir + '/labels/' + '{:05}'.format(j) + '.txt', 'w') as label_file:
+
+#shuffle dataset
+if shuffle:
+    np.random.shuffle(image_labels)
+
+trainSeparator = int(len(image_labels) * 0.7)
+
+with open(od_dir + '/odformat/gtsdb_train.odgt', 'w') as od_file:
+    for labels in image_labels[0:trainSeparator] :
+        print("Image labels: " + str(labels))
+        img = np.array(PIL.Image.open(os.path.join(labels[0][0], labels[0][1])), dtype=np.uint8)
+        print(img.shape)
+        width = img.shape[1]
+        height = img.shape[0]
+        data = {}
+        data["dbName"] = 'gtsdb'
+        data["width"] = width
+        data["height"] = height
+        data["ID"] = labels[0][1]
+        gtboxes = data["gtboxes"] = []
+        data["fpath"] = labels[0][0] + "/" + labels[0][1]
         for label in labels[1:]:
-            label_file.write(str(label[0]) + " " + str(label[1]/width) + " " + str(label[2]/height) + " " + str((label[3] - label[1])/width) + " " + str((label[4] - label[2])/height) + "\n")
-    j = j + 1
+            info = {}
+            info["box"] = [label[1],  label[2], label[3], label[4]]
+            info["occ"] = 0
+            info["tag"] = class_id_name_map[label[0]]
+            gtboxes.append(info)
+        json.dump(data, od_file)
+        od_file.write("\n")
+
+with open(od_dir + '/odformat/gtsdb_val.odgt', 'w') as od_file:
+    for labels in image_labels[trainSeparator:] :
+        print("Image labels: " + str(labels))
+        img = np.array(PIL.Image.open(os.path.join(labels[0][0], labels[0][1])), dtype=np.uint8)
+        print(img.shape)
+        width = img.shape[1]
+        height = img.shape[0]
+        data = {}
+        data["dbName"] = 'gtsdb'
+        data["width"] = width
+        data["height"] = height
+        data["ID"] = labels[0][1]
+        gtboxes = data["gtboxes"] = []
+        data["fpath"] = labels[0][0] + "/" + labels[0][1]
+        for label in labels[1:]:
+            info = {}
+            info["box"] = [label[1],  label[2], label[3], label[4]]
+            info["occ"] = 0
+            info["tag"] = class_id_name_map[label[0]]
+            gtboxes.append(info)
+        json.dump(data, od_file)
+        od_file.write("\n")
