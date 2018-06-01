@@ -43,9 +43,12 @@ def read_classes_list(path):
 
 text = []
 image_labels = []
-root_dir = '/Users/liangchuangu/Development/machine_learning/darknet-traffic/gtsdb'
-od_dir = '/Users/liangchuangu/Development/machine_learning/light_head_rcnn/data/gtsdb'
-data_dir = '/Users/liangchuangu/Development/machine_learning/darknet-traffic/gtsdb/images'
+#root_dir = '/Users/liangchuangu/Development/machine_learning/darknet-traffic/gtsdb'
+root_dir = '/home/robok/Development/darknet-traffic/gtsdb'
+#od_dir = '/Users/liangchuangu/Development/machine_learning/light_head_rcnn/data/gtsdb'
+#data_dir = '/Users/liangchuangu/Development/machine_learning/darknet-traffic/gtsdb/images'
+od_dir = '/home/robok/Development/light_head_rcnn/data/gtsdb'
+data_dir = '/home/robok/Development/darknet-traffic/gtsdb/images'
 
 training_list = get_training_examples(root_dir)
 print("There are " + str(len(training_list)) + " labels\n")
@@ -105,7 +108,7 @@ with open(od_dir + '/odformat/gtsdb_train.odgt', 'w') as od_file:
         data["fpath"] = labels[0][0] + "/" + labels[0][1]
         for label in labels[1:]:
             info = {}
-            info["box"] = [label[1],  label[2], label[3], label[4]]
+            info["box"] = [int(label[1]),  int(label[2]), int(label[3] - label[1]), int(label[4] - label[2])]
             info["occ"] = 0
             info["tag"] = class_id_name_map[label[0]]
             gtboxes.append(info)
