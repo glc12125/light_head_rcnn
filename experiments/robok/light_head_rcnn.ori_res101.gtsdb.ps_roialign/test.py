@@ -16,7 +16,7 @@ import os.path as osp
 import network_desp
 import tensorflow as tf
 import numpy as np
-import cv2, os, sys, math, json, pickle
+import cv2, os, sys, math, json, pickle, time
 
 from tqdm import tqdm
 from utils.py_faster_rcnn_utils.cython_nms import nms, nms_new

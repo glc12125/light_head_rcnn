@@ -28,8 +28,8 @@ from detection_opr.utils.bbox_transform import clip_boxes, bbox_transform_inv
 from functools import partial
 
 
-def load_model(model_file, dev):
-    os.environ["CUDA_VISIBLE_DEVICES"] = dev
+def load_model(model_file, devs):
+    os.environ["CUDA_VISIBLE_DEVICES"] = devs
     tfconfig = tf.ConfigProto(allow_soft_placement=True)
     tfconfig.gpu_options.allow_growth = True
     sess = tf.Session(config=tfconfig)
@@ -120,7 +120,7 @@ def detect(args):
         model_file = osp.join(
             config.output_dir, 'model_dump',
             'epoch_{:d}'.format(epoch_num) + '.ckpt')
-        func, inputs = load_model(model_file, devs[0])
+        func, inputs = load_model(model_file, args.devices)
         data_dict = prepare_func(image_path)
         result_dict = inference(func, inputs, data_dict)
 
